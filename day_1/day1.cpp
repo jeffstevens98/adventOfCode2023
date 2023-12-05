@@ -8,6 +8,7 @@
 #include<cctype>
 #include<map>
 #include<algorithm>
+#include<chrono>
 
 
 /**
@@ -171,7 +172,7 @@ void findCalibrationValueSum_v2(char * fileName)
         //std::cout << "Current line: " << line << std::endl;
         //Resize the current numbersAtIndices vector for the line
         numbersAtIndices.resize(line.length());
-        //std::fill(numbersAtIndices.begin(), numbersAtIndices.end(), -1);
+        std::fill(numbersAtIndices.begin(), numbersAtIndices.end(), -1);
         //Search the vector for the string numbers and number names that we're looking for
         for(const auto & [key,value] : thingsWeAreLookingFor)
         {
@@ -205,15 +206,33 @@ void findCalibrationValueSum_v2(char * fileName)
     }
 
     //Print the result:
-    std::cout << "Sum of calibration codes: " << sum << std::endl;
+    //std::cout << "Sum of calibration codes: " << sum << std::endl;
 }
 
 
 //Main function
 int main(int argc, char *argv[])
 {
-    
-    if(argc > 1)
+    if(argc > 2)
+    {
+        // if(argv[2] == "timetest")
+        // {
+            std::cout << "Starting timetest of aoc 2023 day 1!" << std::endl;
+            float countSum = 0;
+            for(int i = 0; i < 1000; i++)
+            {
+                auto start = std::chrono::high_resolution_clock::now();
+                findCalibrationValueSum_v2(argv[1]);
+                auto stop = std::chrono::high_resolution_clock::now();
+                auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+                countSum += duration.count();
+                std::cout << duration.count() << std::endl;
+            }
+            std::cout << "Average day 1 p2 function execution time: " << (countSum / 1000) << std::endl;
+            
+        // }
+    }
+    else if(argc > 1)
     {
         findCalibrationValueSum_v2(argv[1]);
     }
@@ -221,5 +240,6 @@ int main(int argc, char *argv[])
     {
         std::cout << "You must enter the name of the calibration document's file as the first argument for the program." << std::endl;
     }
+
     return 0;
 }
