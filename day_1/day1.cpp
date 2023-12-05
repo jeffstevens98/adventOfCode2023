@@ -5,7 +5,6 @@
 #include<fstream>
 #include<string>
 #include<vector>
-#include<cctype>
 #include<unordered_map>
 #include<algorithm>
 #include<chrono>
