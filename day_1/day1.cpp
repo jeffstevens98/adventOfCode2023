@@ -29,7 +29,7 @@ std::vector<int> findAll(    std::string str,
 {
     std::vector<int> positions;
 
-    int pos = str.find(substr, 0);
+    auto pos = str.find(substr, 0);
     while(pos != std::string::npos)
     {
         positions.push_back(pos);
@@ -109,7 +109,7 @@ int findCalibrationValueSum(char * fileName)
         lineCode = 10 * (*numbersInLine.begin()) + *(numbersInLine.end() - 1);
         std::cout << "Line code found: " << lineCode << "\n"; 
         // Add it to a sum
-        sum += lineCode
+        sum += lineCode;
         //Clear the current numbers in the line
         numbersInLine.clear();
     }
@@ -124,7 +124,7 @@ int findCalibrationValueSum(char * fileName)
 /**
  * Second part of the first advent of code problem.
 */
-void findCalibrationValueSum_v2(char * fileName)
+int findCalibrationValueSum_v2(char * fileName)
 {
     //Open the file
     std::fstream file(fileName);
@@ -168,12 +168,12 @@ void findCalibrationValueSum_v2(char * fileName)
             std::vector<int> foundPositions = findAll(line, key);
             //For every occurrence we have, insert the string value of the number at the appropriate index in numbersAtIndices
             for (const int& pos : foundPositions) {
-              numbersAtIndicies.at(pos) = value;
+              numbersAtIndices.at(pos) = value;
             }
         }
         numbersAtIndices = eraseAll(numbersAtIndices, -1);
         //Now that we have all the numbers at each index in the line, find the first and last
-        lineCode = 10 * (*numbersInLine.begin()) + *(numbersInLine.end() - 1);
+        lineCode = 10 * (*numbersAtIndices.begin()) + *(numbersAtIndices.end() - 1);
         //Add it to sum
         sum += lineCode;
     }
@@ -205,7 +205,8 @@ int main(int argc, char *argv[])
 }
     else if(argc > 1)
     {
-        findCalibrationValueSum_v2(argv[1]);
+        int sum = findCalibrationValueSum_v2(argv[1]);
+        std::cout << sum << "\n";
     }
     else
     {
