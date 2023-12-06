@@ -165,25 +165,22 @@ std::unordered_map< int, std::vector<std::unordered_map<std::string, int > > > r
 
 
 /**
- * Given the name of an input file and an unordered_map stating the contents of a bag,
+ * Given the data of the input file and an unordered_map stating the contents of a bag,
  * determine what games are possible to play with the bag, where a game is defined as
  * removing a random number of differently colored cubes from a bag. Once these possible
  * games from the input are determined, output the sum of the game ids that were possible.
  * 
  * Parameters:
- *  char * inputFileName - The path/name of to the input file.
+ *  std::unordered_map< int, std::vector<std::unordered_map<std::string, int > > > gameData - The input file stored as a multilayer data structure.
  *  std::unordered_map<std::string,int> bagContents -   A map describing the contents of the bag, where keys are colors red, green, and blue, and the 
  *                                                      values are the quantity of each color of cube in the bag.
  * 
  * Returns:
  *  void, but prints the sum of the game ids that were possible to play.
 */
-void determinePossibleGames(    char * inputFileName,
+void determinePossibleGames(    std::unordered_map< int, std::vector<std::unordered_map<std::string, int > > > gameData,
                                 std::unordered_map<std::string,int> bagContents )
 {
-    //Read the input file
-    std::unordered_map< int, std::vector<std::unordered_map<std::string, int > > > gameData = readFile( inputFileName );
-
     //For each game, we check to see if any of the cubes pulled are greater than bagContents value for that color of cube
     bool gameIsPossible;
     std::vector<int> possibleGames = {};
@@ -219,6 +216,48 @@ void determinePossibleGames(    char * inputFileName,
 }
 
 
+/**
+ * Given the game data from the input file, determine the fewest number of cubes possible for each color for each game.
+ * Once we have the this fewest number of cubes, find the power of the cube set. Output the sum of all of the cube set powers.
+ * 
+ * Parameter:
+ *  std::unordered_map< int, std::vector<std::unordered_map<std::string, int > > > gameData - The input file stored as a multilayer data structure.
+ * 
+ * Returns:
+ *  void, but prints the sum of cube powers to the terminal window.
+*/
+void determineFewestPossibleCubesForGames(  std::unordered_map< int, std::vector<std::unordered_map<std::string, int > > > gameData )
+{
+    int runningSum = 0;
+    //Iterate through all of the games
+    for(int i = 0; i < gameData.size(); i++)
+    {
+        //Define the fewest number of cubes possible for the game, or maximum counts drawn
+        std::unordered_map<std::string,int> maxCubeCounts = {   {"red",     0},
+                                                                {"green",   0},
+                                                                {"blue",    0}  };
+        //Iterate through each set of the game
+        for(int set = 0; set < gameData[i].size(); set++)
+        {
+            //Iterate through each color of cube in the set and check to see if we can update our maxcube count
+            for(const auto & [color, quantity] : gameData[i][set])
+            {
+                //If we find a quantity that's greater than a color's current maximum, change it
+                if(quantity > maxCubeCounts[color])
+                {
+                    maxCubeCounts[color] = quantity;
+                }
+            }
+        }
+
+        //Find the cube set power and add it to the running sum
+        runningSum += (maxCubeCounts["red"] * maxCubeCounts["green"] * maxCubeCounts["blue"]);
+    }
+
+    //std::cout << "Cube power sum: " << runningSum << std::endl;
+}
+
+
 int main(   int argc,
             char * argv[]   )
 {
@@ -228,7 +267,7 @@ int main(   int argc,
                         "0: The program name (day_2)\n"
                         "1: The input file name (input.txt)\n"
                         "2: Part of the problem you want to execute (1 or 2)" << std::endl;
-        return 1; 
+        //return 1; 
     }
 
     //Store argument 2 as a string
@@ -236,33 +275,50 @@ int main(   int argc,
     //Store argument 3 as a string
     std::string timeFlag = argv[3];
 
-    if( partToExecute == "1")
-    {
-        if(argc == 4)
+    //Read in file
+    std::unordered_map< int, std::vector<std::unordered_map<std::string, int > > > gameData = readFile( argv[1] );
+
+    // if( partToExecute == "1")
+    // {
+        if(timeFlag == "timed")
         {
-            if(timeFlag == "timed")
+            auto start = std::chrono::high_resolution_clock::now();
+            for(int i=0; i < 1000; i++)
             {
-                auto start = std::chrono::high_resolution_clock::now();
-                for(int i=0; i < 1000; i++)
-                {
-                    determinePossibleGames( argv[1],
-                                {   { "red",    12},
-                                    { "green",  13},
-                                    { "blue",   14}     });
-                }
-                auto stop = std::chrono::high_resolution_clock::now();
-                auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-                std::cout << "The average execution time of AoC day 2, part 1 (microseconds): " << ((duration.count() / 1000)) << std::endl;
-                return 0;
+                determinePossibleGames( gameData,
+                                        {   { "red",    12},
+                                            { "green",  13},
+                                            { "blue",   14}     });
             }
+            auto stop = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+            std::cout << "The average execution time of AoC day 2, part 1 (microseconds): " << ((duration.count() / 1000)) << std::endl;
         }
-        determinePossibleGames( argv[1],
-                                {   { "red",    12},
-                                    { "green",  13},
-                                    { "blue",   14}     });
-    }
-    else if( )
-    {
-    }
+        else
+        {
+            determinePossibleGames( gameData,
+                                    {   { "red",    12},
+                                        { "green",  13},
+                                        { "blue",   14}     });
+        }
+    // }
+    // else if( partToExecute == "2")
+    // {
+        if(timeFlag == "timed")
+        {
+            auto start = std::chrono::high_resolution_clock::now();
+            for(int i=0; i < 1000; i++)
+            {
+                determineFewestPossibleCubesForGames( gameData );
+            }
+            auto stop = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+            std::cout << "The average exeuction time of AoC day 2, part 2 (microseconds): " << ((duration.count() /1000)) << std::endl;
+        }
+        else
+        {
+            determineFewestPossibleCubesForGames( gameData );
+        }
+    // }
     return 0;
 }
