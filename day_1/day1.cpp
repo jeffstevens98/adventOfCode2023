@@ -5,8 +5,7 @@
 #include<fstream>
 #include<string>
 #include<vector>
-#include<cctype>
-#include<map>
+#include<unordered_map>
 #include<algorithm>
 #include<chrono>
 
@@ -22,14 +21,14 @@
  *  std::string substr - The substring we are looking for within string str.
  * 
  * Returns:
- *  std::vector<size_t> - A vector containing all indices in increasing order that the substr occurs at.
+ *  std::vector<int> - A vector containing all indices in increasing order that the substr occurs at.
 */
-std::vector<size_t> findAll(    std::string str,
+std::vector<int> findAll(    std::string str,
                                 std::string substr  )
 {
-    std::vector<size_t> positions;
+    std::vector<int> positions;
 
-    size_t pos = str.find(substr, 0);
+    auto pos = str.find(substr, 0);
     while(pos != std::string::npos)
     {
         positions.push_back(pos);
@@ -70,143 +69,118 @@ std::vector<T> eraseAll(    std::vector<T> vec,
  * Returns:
  *  void
 */
-void findCalibrationValueSum(char * fileName)
+int findCalibrationValueSum(char * fileName)
 {
     //Open the file
-    std::fstream file;
-    std::cout << "Opening calibration document..." << std::endl;
-    file.open(fileName);
+    std::fstream file(fileName);
+    std::cout << "Opening calibration document...\n";
     if(!file.is_open())
     {
         std::cout << "There was a problem and we were unable to open a file with the name:'" << fileName << "'";
+        exit(EXIT_FAILURE);
     }
-
     //File is ready!
-    std::cout << "Succesfully opened calibration document!" << std::endl;
+    std::cout << "Succesfully opened calibration document!\n";
+
+  
+    std::vector<int> numbersInLine = {};
+    int lineCode{0}, sum{0};
     std::string line;
-    std::string currCharAsStr;
-    std::vector<std::string> numbersInLine = {};
-    std::vector<int> lineCodes = {};
-    int lineCode;
     //For each line of the calibration document, iterate through the characters
     while( getline(file,line) )
     {
-        std::cout << "Current line: " << line << std::endl;
-        for(int i=0; i < line.size(); i++)
+        std::cout << "Current line: " << line << "\n";
+        for(const char& currChar : line)
         {
-            std::cout << "Current char: " << line[i] << std::endl;
+            std::cout << "Current char: " << currChar << "\n";
             //If we find a number, add it to our list of numbers in the line
-            if( isdigit(line[i]) )
+            if( isdigit(currChar) )
             {
-                std::cout << "Found number: " << line[i] << std::endl;
-                std::string s(1,line[i]);
-                numbersInLine.push_back(s);
+                std::cout << "Found number: " << currChar << "\n";
+              
+                // We subtract '0' as that gives us the non-ASCII value when converting from a char to an int
+                // See https://stackoverflow.com/a/5030086
+                numbersInLine.push_back(currChar - '0');
             }
         }
-        std::cout << "Finished looking through all chars in line" << std::endl;
-        //Once we've finished looking through all the characters in the line, take the first and last numbers of the numbersInLine vector and concatenate them
-        lineCode = std::stoi(numbersInLine.front() + numbersInLine.back());
-        std::cout << "Line code found: " << lineCode << std::endl; 
-        //Add that as the line code
-        lineCodes.push_back(lineCode);
+        std::cout << "Finished looking through all chars in line\n";
+        // We take the first element of numbersInLine and turn it into a multiple of ten, and then add the last element (10x + y)
+        lineCode = 10 * (*numbersInLine.begin()) + *(numbersInLine.end() - 1);
+        std::cout << "Line code found: " << lineCode << "\n"; 
+        // Add it to a sum
+        sum += lineCode;
         //Clear the current numbers in the line
         numbersInLine.clear();
     }
 
     //Close the file
     file.close();
-
-    //Now that we have the calibration codes for each line, let's sum them all up
-    int sum = 0;
-    for(int i=0; i < lineCodes.size(); i++)
-    {
-        sum += lineCodes[i];
-    }
-
-    //Print the result:
-    std::cout << "Sum of calibration codes: " << sum << std::endl;
+    
+    return sum;
 }
 
 
 /**
  * Second part of the first advent of code problem.
 */
-void findCalibrationValueSum_v2(char * fileName)
+int findCalibrationValueSum_v2(char * fileName)
 {
     //Open the file
-    std::fstream file;
-    //std::cout << "Opening calibration document..." << std::endl;
-    file.open(fileName);
-    // if(!file.is_open())
-    // {
-    //     std::cout << "There was a problem and we were unable to open a file with the name:'" << fileName << "'";
-    // }
+    std::fstream file(fileName);
+    if(!file.is_open())
+    {
+        std::cout << "There was a problem and we were unable to open a file with the name:'" << fileName << "'";
+        exit(EXIT_FAILURE);
+    }
 
     //File is ready!
-    //std::cout << "Succesfully opened calibration document!" << std::endl;
+    std::unordered_map<std::string,int> thingsWeAreLookingFor = { {"one",     1},
+                                                                {"two",     2},
+                                                                {"three",   3},
+                                                                {"four",    4},
+                                                                {"five",    5},
+                                                                {"six",     6},
+                                                                {"seven",   7},
+                                                                {"eight",   8},
+                                                                {"nine",    9},
+                                                                {"1",       1},
+                                                                {"2",       2},
+                                                                {"3",       3},
+                                                                {"4",       4},
+                                                                {"5",       5},
+                                                                {"6",       6},
+                                                                {"7",       7},
+                                                                {"8",       8},
+                                                                {"9",       9}  };
+
     std::string line;
-    std::vector<int> lineCodes = {};
-    int lineCode;
-    std::vector<int> numbersAtIndices;
-    std::vector<size_t> foundPositions;
-    std::map<std::string,int> thingsWeAreLookingFor = { {"one",     1},
-                                                        {"two",     2},
-                                                        {"three",   3},
-                                                        {"four",    4},
-                                                        {"five",    5},
-                                                        {"six",     6},
-                                                        {"seven",   7},
-                                                        {"eight",   8},
-                                                        {"nine",    9},
-                                                        {"1",       1},
-                                                        {"2",       2},
-                                                        {"3",       3},
-                                                        {"4",       4},
-                                                        {"5",       5},
-                                                        {"6",       6},
-                                                        {"7",       7},
-                                                        {"8",       8},
-                                                        {"9",       9}  };
+    int lineCode{0}, sum{0};
     while( getline(file, line) )
     {
-        //std::cout << "Current line: " << line << std::endl;
-        //Resize the current numbersAtIndices vector for the line
-        numbersAtIndices.resize(line.length());
-        std::fill(numbersAtIndices.begin(), numbersAtIndices.end(), -1);
+        //Resize the current numbersAtIndices vector for the line, and fill it with -1
+        std::vector<int> numbersAtIndices(line.length(), -1);
+      
         //Search the vector for the string numbers and number names that we're looking for
         for(const auto & [key,value] : thingsWeAreLookingFor)
         {
             //Search the line for all occurrences of the key
-            foundPositions = findAll(line, key);
+            std::vector<int> foundPositions = findAll(line, key);
             //For every occurrence we have, insert the string value of the number at the appropriate index in numbersAtIndices
-            for(int i=0; i < foundPositions.size(); i++)
-            {
-                //std::cout << "Found \"" << key << "\" at index " << foundPositions[i] << std::endl;
-                numbersAtIndices[foundPositions[i]] = value;
+            for (const int& pos : foundPositions) {
+              numbersAtIndices.at(pos) = value;
             }
         }
         numbersAtIndices = eraseAll(numbersAtIndices, -1);
         //Now that we have all the numbers at each index in the line, find the first and last
-        lineCode = std::stoi(std::to_string(numbersAtIndices.front()) + std::to_string(numbersAtIndices.back()));
-        //std::cout << "Line code found: " << lineCode << std::endl; 
-        //Add that as the line code
-        lineCodes.push_back(lineCode);
-        //Clear the current numbers in the line
-        numbersAtIndices.clear();
+        lineCode = 10 * (*numbersAtIndices.begin()) + *(numbersAtIndices.end() - 1);
+        //Add it to sum
+        sum += lineCode;
     }
 
     //Close the file
     file.close();
 
-    //Now that we have the calibration codes for each line, let's sum them all up
-    int sum = 0;
-    for(int i=0; i < lineCodes.size(); i++)
-    {
-        sum += lineCodes[i];
-    }
-
-    //Print the result:
-    //std::cout << "Sum of calibration codes: " << sum << std::endl;
+    return sum;
 }
 
 
@@ -215,30 +189,27 @@ int main(int argc, char *argv[])
 {
     if(argc > 2)
     {
-        // if(argv[2] == "timetest")
-        // {
-            std::cout << "Starting timetest of aoc 2023 day 1!" << std::endl;
-            float countSum = 0;
-            for(int i = 0; i < 1000; i++)
-            {
-                auto start = std::chrono::high_resolution_clock::now();
-                findCalibrationValueSum_v2(argv[1]);
-                auto stop = std::chrono::high_resolution_clock::now();
-                auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-                countSum += duration.count();
-                std::cout << duration.count() << std::endl;
-            }
-            std::cout << "Average day 1 p2 function execution time: " << (countSum / 1000) << std::endl;
-            
-        // }
-    }
+        std::cout << "Starting timetest of aoc 2023 day 1!\n";
+        float countSum = 0;
+        for(int i = 0; i < 1000; i++)
+        {
+            auto start = std::chrono::high_resolution_clock::now();
+            findCalibrationValueSum_v2(argv[1]);
+            auto stop = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+            countSum += duration.count();
+            std::cout << duration.count() << std::endl;
+        }
+        std::cout << "Average day 1 p2 function execution time: " << (countSum / 1000) << "\n";
+}
     else if(argc > 1)
     {
-        findCalibrationValueSum_v2(argv[1]);
+        int sum = findCalibrationValueSum_v2(argv[1]);
+        std::cout << sum << "\n";
     }
     else
     {
-        std::cout << "You must enter the name of the calibration document's file as the first argument for the program." << std::endl;
+        std::cout << "You must enter the name of the calibration document's file as the first argument for the program.\n";
     }
 
     return 0;
