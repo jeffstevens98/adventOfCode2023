@@ -69,7 +69,7 @@ T find_min( const std::vector<T> vec)
     //Throw an error if the vector is empty
     if(vec.empty())
     {
-        std::cerr << "stevensVectorLib Error: find_min_int(): Parameter must be a vector with size greater than 0" << std::endl;
+        std::cerr << "stevensVectorLib Error: find_min(): Parameter must be a vector with size greater than 0" << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -269,10 +269,49 @@ long long int getAlmanacMapping(    long long int source,
 
 
 /**
+ * Format the seeds vector for part 2 of the day 5 problem for a brute force solution.
+*/
+std::vector<long long int> part2_seedFormatting( std::vector<long long int> seeds )
+{
+    std::vector<long long int> seeds_formatted = {};
+    int activity = 1; 
+    long long int rangeStart;
+    long long int rangeLength;
+
+    for(int i = 0; i < seeds.size(); i++)
+    {
+        switch(activity)
+        {
+            //Identify range start
+            case 1:
+                rangeStart = seeds[i];
+                activity = 2;
+                break;
+            //Identify range length and push seed numbers to the seeds_formatted vector
+            case 2:
+                rangeLength = seeds[i];
+                for(long long int s = 0; s < rangeLength; s++)
+                {
+                    seeds_formatted.push_back(rangeStart + s);
+                }
+                activity = 1;
+                break;
+            default:
+                break;
+        }
+    }
+
+    std::cout << "Done formatting seeds for p2!" << std::endl;
+    return seeds_formatted;
+}
+
+
+/**
  * Given the input for advent of code 2023 day 5, read it into the program. We'll store it as a tuple
  * of a std::vector<int> and an Almanac.
 */
-std::tuple<std::vector<long long int>, Almanac> readInput( std::string inputFileName )
+std::tuple<std::vector<long long int>, Almanac> readInput(  std::string inputFileName,
+                                                            std::string partToExecute )
 {
     //Open the file
     std::fstream file(inputFileName);
@@ -309,6 +348,11 @@ std::tuple<std::vector<long long int>, Almanac> readInput( std::string inputFile
                     {
                         //Read the seeds in from  this line
                         seeds = vecOfStrings_to_vecOfLongLongInts( stringLib.separate( stringLib.trimWhitespace(separatedLabelLine[1]), " ") );
+                        if( partToExecute == "2")
+                        {
+                            seeds = part2_seedFormatting(seeds);
+                        }
+                        
                     }
                     else if(label == "seed-to-soil map")
                     {
@@ -542,7 +586,7 @@ int main( int argc, char * argv[] )
     if(partToExecute == "1")
     {
         //Read in the file
-        std::tuple< std::vector<long long int>, Almanac > seedsAndAlmanac = readInput( inputFileName );
+        std::tuple< std::vector<long long int>, Almanac > seedsAndAlmanac = readInput( inputFileName, partToExecute );
         std::vector<long long int> seeds = get<0>(seedsAndAlmanac);
         Almanac almanac = get<1>(seedsAndAlmanac);
 
@@ -568,25 +612,27 @@ int main( int argc, char * argv[] )
     if(partToExecute == "2")
     {
         //Read in the file
-        std::tuple<, almanac> readInput_p2( inputFileName );
+        std::tuple< std::vector<long long int>, Almanac> seedsAndAlmanac = readInput( inputFileName, partToExecute );
+        std::vector<long long int> seeds = get<0>(seedsAndAlmanac);
+        Almanac almanac = get<1>(seedsAndAlmanac);
 
-        //Find the average time of execution
+        //Find the time of execution
         if(inputParser.cmdOptionExists("-t"))
         {
             auto start = std::chrono::high_resolution_clock::now();
-            for(int i = 0; i < 1000; i++)
-            {
-                findTotalNumberOfScratchCards( scratchCards );
-            }
+            // for(int i = 0; i < 1; i++)
+            // {
+                findClosestSeedLocation( seeds, almanac );
+            // }
             auto stop = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-            std::cout << "The average exeuction time of AoC day 4, part 2 (microseconds): " << ((duration.count() /1000)) << std::endl;
+            std::cout << "The exeuction time of AoC day 5, part 2 (microseconds): " << ((duration.count() /1000)) << std::endl;
         }
         //Execute normally
         else
         {
-            int cardCount = findTotalNumberOfScratchCards( scratchCards );
-            std::cout << "Total number of scratchcards: " << cardCount << std::endl;
+            int answer = findClosestSeedLocation(seeds, almanac);
+            std::cout << "Closest (lowest) seed location: " << answer << std::endl;
         }
     }
 
